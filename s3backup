@@ -1,0 +1,45 @@
+#!/bin/sh
+
+DAYSTOKEEP=30
+BUCKET="backups-mail"
+PREFIX="backups"
+
+# -------------
+
+abort() {
+	echo $@
+	exit 1
+}
+
+date2epoch() {
+	date -d "$@" +%s
+}
+
+date2sort() {
+	date -d "$@" +%F
+}
+
+
+EXPIRES=$(($DAYSTOKEEP * 86400))
+EXPIRE_TIME=$(( $(date2epoch now) - $EXPIRES ))
+
+# ---- main ----
+
+[[ -z "$BUCKET" ]] && abort "specify BUCKET name"
+[[ -z "$PREFIX" ]] && abort "specify PREFIX"
+[[ -z "$EXPIRES" ]] && abort "specify DAYSTOKEEP/fix EXPIRES"
+
+#	get the list of daily backups
+BACKUPS=$(s3cmd list "$BUCKET:$PREFIX" 1000000000 | cut -d/ -f 2 | sort -u | grep -v -- '--------------------')
+
+#	clear old backups
+for DATE in $BACKUPS; do
+	[[ $(date2epoch $DATE) -lt $EXPIRE_TIME ]]   &&    s3cmd deleteall "$BUCKET:$PREFIX/$DATE"
+done
+
+#	backup current stuff
+NOW=$(date2sort now)
+
+s3sync -r /var/mail/ "$BUCKET:$PREFIX/$NOW/mail"
+s3sync -r /var/backups/ "$BUCKET:$PREFIX/$NOW/backups"
+
