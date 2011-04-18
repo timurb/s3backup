@@ -30,7 +30,7 @@ EXPIRE_TIME=$(( $(date2epoch now) - $EXPIRES ))
 [[ -z "$EXPIRES" ]] && abort "specify DAYSTOKEEP/fix EXPIRES"
 
 #	get the list of daily backups
-BACKUPS=$(s3cmd list "$BUCKET:$PREFIX" 1000000000 | cut -d/ -f 2 | sort -u | grep -v -- '--------------------')
+BACKUPS=$(/usr/bin/yes | s3cmd list "$BUCKET:$PREFIX" | grep -v 'More? Y/n' | grep -v -- '--------------------' | cut -d/ -f 2 | sort -u )
 
 #	clear old backups
 for DATE in $BACKUPS; do
@@ -39,7 +39,10 @@ done
 
 #	backup current stuff
 NOW=$(date2sort now)
+TMPDIR=$(mktemp -d)
 
-s3sync -r /var/mail/ "$BUCKET:$PREFIX/$NOW/mail"
-s3sync -r /var/backups/ "$BUCKET:$PREFIX/$NOW/backups"
+tar -C /var -zcf "${TMPDIR}/mail-$NOW.tgz" mail/
+s3sync $TMPDIR/* "$BUCKET:$PREFIX/$NOW/"
+s3sync /var/backups/mysql/latest/* "$BUCKET:$PREFIX/$NOW/"
+rm -rf ${TMPDIR}
 
