@@ -22,3 +22,9 @@ bucket to keep backups in.
 The S3 bucket should already be created to run this script.
 
 By default /var/backups and /var/mail are backed up -- change those at the end of file.
+
+# Note
+
+Please note that s3sync utility as stated in its docs does not work with single 
+files - only dirs. If you need to backup single file use s3cmd put instead or place
+the file into the dir.
