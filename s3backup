@@ -25,16 +25,16 @@ EXPIRE_TIME=$(( $(date2epoch now) - $EXPIRES ))
 
 # ---- main ----
 
-[[ -z "$BUCKET" ]] && abort "specify BUCKET name"
-[[ -z "$PREFIX" ]] && abort "specify PREFIX"
-[[ -z "$EXPIRES" ]] && abort "specify DAYSTOKEEP/fix EXPIRES"
+[ -z "$BUCKET" ] && abort "specify BUCKET name"
+[ -z "$PREFIX" ] && abort "specify PREFIX"
+[ -z "$EXPIRES" ] && abort "specify DAYSTOKEEP/fix EXPIRES"
 
 #	get the list of daily backups
 BACKUPS=$(/usr/bin/yes | s3cmd list "$BUCKET:$PREFIX" | grep -v 'More? Y/n' | grep -v -- '--------------------' | cut -d/ -f 2 | sort -u )
 
 #	clear old backups
 for DATE in $BACKUPS; do
-	[[ $(date2epoch $DATE) -lt $EXPIRE_TIME ]]   &&    s3cmd deleteall "$BUCKET:$PREFIX/$DATE"
+	[ $(date2epoch $DATE) -lt $EXPIRE_TIME ]   &&    s3cmd deleteall "$BUCKET:$PREFIX/$DATE"
 done
 
 #	backup current stuff
