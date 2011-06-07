@@ -3,6 +3,7 @@
 DAYSTOKEEP=30
 BUCKET=$(hostname)
 PREFIX="backups"
+S3SYNC="/var/lib/gems/1.8/bin/s3sync"
 
 # -------------
 
@@ -42,7 +43,7 @@ NOW=$(date2sort now)
 TMPDIR=$(mktemp -d)
 
 tar -C /var -zcf "${TMPDIR}/mail-$NOW.tgz" mail/
-s3sync -r "${TMPDIR}/" "$BUCKET:$PREFIX/$NOW/" 
-s3sync -r /var/backups/mysql/latest/ "$BUCKET:$PREFIX/$NOW/" 
+$S3SYNC -r "${TMPDIR}/" "$BUCKET:$PREFIX/$NOW/" 
+$S3SYNC -r /var/backups/mysql/latest/ "$BUCKET:$PREFIX/$NOW/" 
 rm -rf ${TMPDIR}
 
