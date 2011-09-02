@@ -4,6 +4,7 @@ DAYSTOKEEP=30
 BUCKET=$(hostname)
 PREFIX="backups"
 S3SYNC="/var/lib/gems/1.8/bin/s3sync"
+S3CMD="/var/lib/gems/1.8/bin/s3cmd"
 
 # -------------
 
@@ -31,11 +32,11 @@ EXPIRE_TIME=$(( $(date2epoch now) - $EXPIRES ))
 [ -z "$EXPIRES" ] && abort "specify DAYSTOKEEP/fix EXPIRES"
 
 #	get the list of daily backups
-BACKUPS=$(/usr/bin/yes | s3cmd list "$BUCKET:$PREFIX" | grep -v 'More? Y/n' | grep -v -- '--------------------' | cut -d/ -f 2 | sort -u )
+BACKUPS=$(/usr/bin/yes | $S3CMD list "$BUCKET:$PREFIX" | grep -v 'More? Y/n' | grep -v -- '--------------------' | cut -d/ -f 2 | sort -u )
 
 #	clear old backups
 for DATE in $BACKUPS; do
-	[ $(date2epoch $DATE) -lt $EXPIRE_TIME ]   &&    s3cmd deleteall "$BUCKET:$PREFIX/$DATE"
+	[ $(date2epoch $DATE) -lt $EXPIRE_TIME ]   &&    $S3CMD deleteall "$BUCKET:$PREFIX/$DATE"
 done
 
 #	backup current stuff
