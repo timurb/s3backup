@@ -3,6 +3,7 @@
 A script to backup stuff to S3
 
 It requires s3sync gem installed.
+It does NOT work correctly with python-based or any other s3sync/s3cmd but only with ruby-based one.
 
 
 # Description
